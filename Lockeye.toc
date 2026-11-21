@@ -5,6 +5,7 @@
 ## Version: 0.3.0
 ## X-License: MIT
 ## X-Website: https://github.com/CakeRepository/Lockeye
+## X-Curse-Project-ID: 1820221
 ## SavedVariables: LockeyeDB
 ## IconTexture: Interface\Icons\Spell_Shadow_AbominationExplosion
 ## AddonCompartmentFunc: Lockeye_OnAddonCompartmentClick

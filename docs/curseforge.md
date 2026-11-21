@@ -1,6 +1,8 @@
 # CurseForge project page
 
-What to enter when creating the CurseForge project, kept here so the page can be edited later.
+Created on CurseForge as project **1820221** (authors.curseforge.com/#/projects/1820221), visible
+once a moderator approves the first file. The text below is what was entered, kept here so the
+page can be edited later. Settings: comments off, third-party distribution allowed (as Deadeye).
 
 **Name:** Lockeye - Warlock DoT Timers, Nightfall Alert & Wand Bar (Forever)
 
@@ -12,7 +14,7 @@ Timers for your Corruption, bane, Immolate, Siphon Life and curse on your target
 
 **Logo:** `docs/logo.png`
 
-**Category:** Class: Warlock (add Buffs & Debuffs and Combat as other categories if you like)
+**Category:** Warlock, with Buffs & Debuffs and Combat as additional categories
 
 **License:** MIT License
 
