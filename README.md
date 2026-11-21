@@ -10,7 +10,11 @@ A warlock toolkit for **World of Warcraft: Forever**. A sibling of
 - **Wand bar:** when your next wand shot goes off, where to stand still for it, where a cast still
   fits before it, and what moving or casting costs you.
 
-Type `/lockeye` (or `/leye`) for the options. `/lockeye test` shows both frames with made-up timers.
+Type `/lockeye` (or `/leye`) for the options. `/lockeye test` shows every frame with made-up timers.
+
+| DoT timers | Nightfall alert | Wand bar |
+| --- | --- | --- |
+| ![DoT timers on your target and the other enemies you fight](docs/screenshots/2-dot-timers.png) | ![The Nightfall alert above your character](docs/screenshots/1-nightfall-alert.png) | ![The wand bar](docs/screenshots/3-wand-bar.png) |
 
 ## The DoT tracker
 

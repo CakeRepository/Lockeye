@@ -15,6 +15,11 @@ Timers for your Corruption, bane, Immolate, Siphon Life and curse on your target
 
 **Logo:** `docs/logo.png`
 
+**Screenshots** (Media tab), in `docs/screenshots/`, with captions:
+1. `1-nightfall-alert.png`: The Nightfall alert: your next Shadow Bolt is instant, with the seconds left
+2. `2-dot-timers.png`: DoT timers on your target, and every other enemy you're fighting below
+3. `3-wand-bar.png`: The wand bar: where to stand still for the next shot, and what a cast would cost
+
 **Category:** Warlock, with Buffs & Debuffs and Combat as additional categories
 
 **License:** MIT License
