@@ -1,8 +1,9 @@
 # CurseForge project page
 
-Created on CurseForge as project **1820221** (authors.curseforge.com/#/projects/1820221), visible
-once a moderator approves the first file. The text below is what was entered, kept here so the
-page can be edited later. Settings: comments off, third-party distribution allowed (as Deadeye).
+Created on CurseForge as project **1820221**:
+https://www.curseforge.com/wow/addons/lockeye-warlock-dot-timers-nightfall-alert-wand
+(visible once a moderator approves the first file; v0.3.0 was uploaded by hand on 2026-11-20). The text below is what was entered, kept here so the
+page can be edited later. Settings: comments off, third-party distribution allowed (as Deadeye), source linked to GitHub.
 
 **Name:** Lockeye - Warlock DoT Timers, Nightfall Alert & Wand Bar (Forever)
 
