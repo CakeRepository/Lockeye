@@ -1,5 +1,13 @@
 # Lockeye changelog
 
+## v0.4.0
+
+- **What your demons know, at the demon trainer.** Lockeye notes each demon's abilities and ranks
+  whenever you summon it (per character). At a vendor that sells grimoires, each one is marked
+  **Known**, **Upgrade** or **New** for its demon, or **?** for a demon you haven't summoned yet.
+  A list of your demons and their ranks opens beside the trainer's window, and grimoire tooltips
+  say what your demon has. `/lockeye demons` shows the list anywhere.
+
 ## v0.3.0
 
 - **Nightfall alert.** When Nightfall puts you in a Shadow Trance, a purple line with the Shadow

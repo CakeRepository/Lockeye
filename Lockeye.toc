@@ -1,12 +1,13 @@
 ## Interface: 16001
 ## Title: |cff9482c9Lockeye|r
-## Notes: Warlock toolkit for WoW: Forever: timers for your DoTs, banes and curses on your target and the enemies around it, a Nightfall alert and a wand Shoot bar. Type /lockeye for options.
+## Notes: Warlock toolkit for WoW: Forever: timers for your DoTs, banes and curses on your target and the enemies around it, a Nightfall alert, a wand Shoot bar, and what your demons know at the demon trainer. Type /lockeye for options.
 ## Author: CakeRepository
-## Version: 0.3.0
+## Version: 0.4.0
 ## X-License: MIT
 ## X-Website: https://github.com/CakeRepository/Lockeye
 ## X-Curse-Project-ID: 1820221
 ## SavedVariables: LockeyeDB
+## SavedVariablesPerCharacter: LockeyeCharDB
 ## IconTexture: Interface\Icons\Spell_Shadow_AbominationExplosion
 ## AddonCompartmentFunc: Lockeye_OnAddonCompartmentClick
 ## AddonCompartmentFuncOnEnter: Lockeye_OnAddonCompartmentEnter
@@ -22,3 +23,4 @@ Options\Window.lua
 Modules\Dots.lua
 Modules\Wand.lua
 Modules\Nightfall.lua
+Modules\Demons.lua

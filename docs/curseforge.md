@@ -67,6 +67,13 @@ soon as you cast it.
 When your next wand shot goes off, where to stand still for it, where a cast still fits before
 it, and what moving or casting costs you. It says so when Shoot is off in a fight.
 
+## What your demons know, at the demon trainer
+
+A demon's abilities only show while it's summoned. Lockeye notes them, with their ranks, each time
+you summon one. At the demon trainer, every grimoire is marked **Known**, **Upgrade** or **New**
+for its demon, and a list of your demons and their ranks opens beside the trainer's window.
+Grimoire tooltips say what your demon has. **/lockeye demons** shows the list anywhere.
+
 ## Built for Forever's addon rules
 
 In combat, Forever hides the details of enemy debuffs from addons. Lockeye times each DoT from

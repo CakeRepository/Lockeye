@@ -34,7 +34,7 @@ test("the window lists the DoT pages, then the wand pages", function()
 		names[#names + 1] = section.name
 	end
 	H.Equal(table.concat(names, ", "),
-		"DoTs: what to track, DoTs: position, DoTs: look, Wand: position, Wand: bar, Wand: text and timing, Nightfall alert", "pages")
+		"DoTs: what to track, DoTs: position, DoTs: look, Wand: position, Wand: bar, Wand: text and timing, Nightfall alert, Demon abilities", "pages")
 	H.Equal(W.registeredCategory.name, "Lockeye", "Settings > AddOns entry")
 end)
 

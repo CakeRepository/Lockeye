@@ -23,7 +23,7 @@ for line in io.lines(ROOT .. "/Lockeye.toc") do
 end
 
 if failed == 0 then
-	for _, file in ipairs({ "test_wand.lua", "test_dots.lua", "test_nightfall.lua", "test_options.lua" }) do
+	for _, file in ipairs({ "test_wand.lua", "test_dots.lua", "test_nightfall.lua", "test_demons.lua", "test_options.lua" }) do
 		local tests = assert(loadfile(ROOT .. "/tests/" .. file))(H, ROOT)
 		for _, t in ipairs(tests) do
 			local ok, err = xpcall(t.fn, debug.traceback)

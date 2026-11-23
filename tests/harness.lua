@@ -75,6 +75,7 @@ local FRAME_TYPES = {
 -- Globals the addon is expected to create, or to read before they exist.
 local ADDON_GLOBALS = {
 	LockeyeDB = true,
+	LockeyeCharDB = true,
 	SLASH_LOCKEYE1 = true,
 	SLASH_LOCKEYE2 = true,
 	Lockeye_OnAddonCompartmentClick = true,
@@ -843,6 +844,10 @@ local SPELL_NAMES = {
 	[5019] = "Shoot", [686] = "Shadow Bolt", [5676] = "Searing Pain", [412758] = "Incinerate", [6353] = "Soul Fire",
 	[5782] = "Fear", [17794] = "Shadow Vulnerability", [1454] = "Life Tap", [6201] = "Create Healthstone",
 	[689] = "Drain Life", [17941] = "Shadow Trance", [3914] = "Bolt of Woolen Cloth",
+	[3110] = "Firebolt", [6307] = "Blood Pact", [2947] = "Fire Shield", [4511] = "Phase Shift",
+	[3716] = "Torment", [7812] = "Sacrifice", [17767] = "Consume Shadows", [17735] = "Suffering",
+	[7814] = "Lash of Pain", [6358] = "Seduction", [6360] = "Soothing Kiss", [7870] = "Lesser Invisibility",
+	[19505] = "Devour Magic", [19244] = "Spell Lock", [19478] = "Tainted Blood", [19480] = "Paranoia",
 }
 local HELPFUL = { [1454] = true, [6201] = true }
 -- Spells the player knows, by name, and their cast times in ms.
@@ -1320,13 +1325,15 @@ function H.NewWorld(options)
 	env.C_AddOns = {
 		GetAddOnMetadata = function(addon, field)
 			if addon == "Lockeye" and field == "Version" then
-				return "0.3.0"
+				return "0.4.0"
 			end
 		end,
 	}
 	env.Enum = {
 		PlayerSwingType = { MainHand = 0, OffHand = 1, Ranged = 2 },
 		UnitAuraSortRule = { Unsorted = 0, Default = 1, BigDefensive = 2, Expiration = 3, ExpirationOnly = 4, Name = 5, NameOnly = 6 },
+		SpellBookSpellBank = { Player = 0, Pet = 1 },
+		TooltipDataType = { Item = 0 },
 	}
 	env.SlashCmdList = {}
 	env.GameFontHighlightSmall = {
@@ -1385,6 +1392,119 @@ function H.NewWorld(options)
 	}
 	if options.savedVariables then
 		env.LockeyeDB = options.savedVariables
+	end
+	if options.charVariables then
+		env.LockeyeCharDB = options.charVariables
+	end
+	env.time = function()
+		return 1800000000 + math.floor(W.now)
+	end
+	env.hooksecurefunc = function(name, hook)
+		local original = rawget(env, name)
+		check(type(original) == "function" and type(hook) == "function", "hooksecurefunc: no function " .. tostring(name))
+		rawset(env, name, function(...)
+			local results = { original(...) }
+			hook(...)
+			return unpack(results)
+		end)
+	end
+
+	-- Your demon: W.SummonDemon(family, { { name, subtext }, ... }) fills its spellbook
+	-- (with a copy, so a test can change W.units.pet.spells without touching its list).
+	function W.SummonDemon(family, spells)
+		local book = {}
+		for i, spell in ipairs(spells) do
+			book[i] = { spell[1], spell[2] }
+		end
+		W.units.pet = { name = family, family = family, hostile = false, dead = false, debuffs = {}, spells = book }
+		W.Fire("UNIT_PET", "player")
+	end
+	env.UnitCreatureFamily = function(unit)
+		local pet = W.Unit(unit)
+		return pet and pet.family
+	end
+	env.C_SpellBook = {
+		HasPetSpells = function()
+			local pet = W.units.pet
+			if not pet then
+				return nil
+			end
+			return #pet.spells, "DEMON"
+		end,
+		GetSpellBookItemName = function(index, bank)
+			check(bank == env.Enum.SpellBookSpellBank.Pet, "GetSpellBookItemName: the pet's spellbook expected")
+			local spell = W.units.pet and W.units.pet.spells[index]
+			if spell then
+				return spell[1], spell[2]
+			end
+		end,
+	}
+
+	-- The vendor window: W.OpenVendor({ { id =, name = }, ... }) shows its first page.
+	W.merchantItems = {}
+	env.MERCHANT_ITEMS_PER_PAGE = 10
+	env.MerchantFrame = NewFrame("Frame", "MerchantFrame", env.UIParent)
+	env.MerchantFrame.page, env.MerchantFrame.selectedTab = 1, 1
+	env.MerchantFrame:Hide()
+	for i = 1, 10 do
+		NewFrame("Frame", "MerchantItem" .. i, env.MerchantFrame)
+		NewFrame("Button", "MerchantItem" .. i .. "ItemButton", env.MerchantFrame)
+	end
+	W.merchantRedraws = 0
+	env.MerchantFrame_UpdateMerchantInfo = function()
+		W.merchantRedraws = W.merchantRedraws + 1
+	end
+	env.MerchantFrame_UpdateBuybackInfo = function() end
+	env.GetMerchantNumItems = function()
+		return #W.merchantItems
+	end
+	env.C_MerchantFrame = {
+		GetItemInfo = function(index)
+			local item = W.merchantItems[index]
+			if not item then
+				return nil
+			end
+			return { name = item.name, price = 1000, stackCount = 1, numAvailable = -1, isPurchasable = true, isUsable = true }
+		end,
+	}
+	function W.OpenVendor(items)
+		W.merchantItems = items
+		env.MerchantFrame.page, env.MerchantFrame.selectedTab = 1, 1
+		env.MerchantFrame:Show()
+		W.Fire("MERCHANT_SHOW")
+		env.MerchantFrame_UpdateMerchantInfo()
+	end
+	function W.CloseVendor()
+		env.MerchantFrame:Hide()
+		W.Fire("MERCHANT_CLOSED")
+	end
+
+	-- Item tooltips: W.ItemTooltip(itemID) runs the tooltip post-calls and returns the lines added.
+	W.itemNames = {}
+	local postCalls = {}
+	env.TooltipDataProcessor = {
+		AddTooltipPostCall = function(kind, func)
+			check(kind == env.Enum.TooltipDataType.Item and type(func) == "function", "AddTooltipPostCall: item post-call expected")
+			postCalls[#postCalls + 1] = func
+		end,
+	}
+	env.C_Item = {
+		GetItemInfo = function(itemID)
+			return W.itemNames[itemID]
+		end,
+	}
+	function W.ItemTooltip(itemID)
+		local lines = {}
+		local tooltip = {
+			AddLine = function(_, text, r, g, b)
+				lines[#lines + 1] = { text = text, color = { r, g, b } }
+			end,
+			Show = function() end,
+		}
+		for _, func in ipairs(postCalls) do
+			func(tooltip, { type = env.Enum.TooltipDataType.Item, id = itemID, lines = {} })
+		end
+		return lines
 	end
 	env._G = env
 	for name in pairs(options.missingGlobals or {}) do

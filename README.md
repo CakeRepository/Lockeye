@@ -9,6 +9,9 @@ A warlock toolkit for **World of Warcraft: Forever**. A sibling of
 - **Nightfall alert:** a purple line above your character while your next Shadow Bolt is instant.
 - **Wand bar:** when your next wand shot goes off, where to stand still for it, where a cast still
   fits before it, and what moving or casting costs you.
+- **Demon abilities:** what each of your demons knows, noted whenever you summon it. At the demon
+  trainer, each grimoire is marked Known, Upgrade or New for its demon, and a list of your demons
+  and their ranks sits beside the trainer's window.
 
 Type `/lockeye` (or `/leye`) for the options. `/lockeye test` shows every frame with made-up timers.
 
@@ -83,6 +86,26 @@ If Shoot turns off in a fight you were wanding in, the bar says "Shoot is off".
 The stand-still stretch is 0.5 seconds plus your latency. If your wand fires while you move, set
 it to 0 under Wand: text and timing.
 
+## Demon abilities at the trainer
+
+A demon's abilities only show in its spellbook while it's summoned, so it's hard to tell at the
+demon trainer which grimoires your demons still need. Lockeye notes each demon's abilities and
+their ranks whenever you summon it, for each of your characters. Summon each demon once and it
+knows them all from then on, including after it learns a new rank.
+
+At a vendor that sells grimoires, each one gets a mark on its icon:
+
+- **Known** (green): your demon has this rank or a higher one.
+- **Upgrade** (gold): your demon has a lower rank.
+- **New** (blue): your demon doesn't have this ability yet.
+- **?** (gray): you haven't summoned that demon since installing Lockeye.
+
+The grimoire's tooltip says the same in words, like "Upgrade: your Imp has Firebolt (Rank 3)", in
+your bags too. Beside the trainer's window, a list of your demons shows every ability and its rank,
+with the ones a demon lacks grayed out. Close it with its X and it stays closed until your next
+visit. `/lockeye demons` shows the list anywhere. Each of the three can be turned off under Demon
+abilities in the options.
+
 ## Commands
 
 | Command | What it does |
@@ -94,7 +117,9 @@ it to 0 under Wand: text and timing.
 | `/lockeye nightfall on` / `off` | Turn the Nightfall alert on or off |
 | `/lockeye <setting> <value>` | Change a wand bar setting, like `/lockeye width 250` |
 | `/lockeye dots <setting> <value>` | Change a DoT tracker setting, like `/lockeye dots threshold 4` |
-| `/lockeye settings` / `dots settings` | List the settings |
+| `/lockeye demons` | Show or hide what your demons know |
+| `/lockeye demons marks off` | Turn off the grimoire marks (also `tooltips`, `panel`) |
+| `/lockeye settings` / `dots settings` / `demons settings` | List the settings |
 | `/lockeye check` | Say what Lockeye can see of your target's DoTs |
 | `/lockeye log on` / `off` / `clear` | Keep a log of what Lockeye sees, saved at `/reload` (on by default) |
 | `/lockeye debug` | Also print that log to chat as it happens |
