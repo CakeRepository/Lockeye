@@ -7,6 +7,9 @@
   **Known**, **Upgrade** or **New** for its demon, or **?** for a demon you haven't summoned yet.
   A list of your demons and their ranks opens beside the trainer's window, and grimoire tooltips
   say what your demon has. `/lockeye demons` shows the list anywhere.
+- The game can show a demon's spells a moment after it's summoned or learns a rank, so Lockeye
+  looks again after 1 and 3 seconds. Before, it could keep an old rank (such as Sacrifice's) until
+  you summoned that demon again.
 
 ## v0.3.0
 

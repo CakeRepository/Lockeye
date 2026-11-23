@@ -1399,6 +1399,9 @@ function H.NewWorld(options)
 	env.time = function()
 		return 1800000000 + math.floor(W.now)
 	end
+	env.date = function(format)
+		return os.date(format, env.time())
+	end
 	env.hooksecurefunc = function(name, hook)
 		local original = rawget(env, name)
 		check(type(original) == "function" and type(hook) == "function", "hooksecurefunc: no function " .. tostring(name))
@@ -1425,6 +1428,7 @@ function H.NewWorld(options)
 	end
 	env.C_SpellBook = {
 		HasPetSpells = function()
+			W.petSpellbookReads = (W.petSpellbookReads or 0) + 1
 			local pet = W.units.pet
 			if not pet then
 				return nil

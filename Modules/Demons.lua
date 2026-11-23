@@ -32,6 +32,10 @@ local PET_BANK = Enum and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Pe
 local ITEM_TOOLTIP = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Item or 0
 local ITEMS_PER_PAGE = 10
 local PANEL_WIDTH = 250
+-- The game can fill in a demon's spellbook a moment after it says the demon
+-- or its spells changed, so Lockeye looks again after these many seconds.
+local LOOK_AGAIN = { 1, 3 }
+local MAX_CHANGES = 10 -- rank changes kept per demon, to check a wrong rank later
 
 local STATUS = {
 	known = { text = L["Known"], color = { 0.45, 1, 0.45 } },
@@ -110,7 +114,8 @@ local function DemonKey(family, abilities)
 	return family
 end
 
-function Demons:ReadPet()
+-- why: what made Lockeye look ("UNIT_PET", "SPELLS_CHANGED +1s"...), for the log.
+function Demons:ReadPet(why)
 	if not (charDB and ns.Readable(UnitExists("pet"), false)) or ns.Readable(UnitIsDead("pet"), false) then
 		return
 	end
@@ -121,27 +126,50 @@ function Demons:ReadPet()
 	end
 	local key = DemonKey(family, abilities)
 	local record = charDB.demons[key] or { abilities = {} }
-	local changed = record.name ~= family
+	local changes = {}
 	for name, rank in pairs(abilities) do
-		if record.abilities[name] ~= rank then
-			changed = true
+		local before = record.abilities[name]
+		if before ~= rank then
+			changes[#changes + 1] = name .. " " .. (before or "-") .. ">" .. rank
 		end
 	end
-	for name in pairs(record.abilities) do
+	for name, before in pairs(record.abilities) do
 		if not abilities[name] then
-			changed = true
+			changes[#changes + 1] = name .. " " .. before .. ">-"
 		end
 	end
+	local changed = record.name ~= family or #changes > 0
 	record.name, record.abilities, record.seen = family, abilities, time()
 	charDB.demons[key] = record
+	if #changes > 0 then
+		table.sort(changes)
+		record.changes = type(record.changes) == "table" and record.changes or {}
+		table.insert(record.changes, 1, (date and date("%Y-%m-%d %H:%M ") or "") .. (why or "?") .. ": " .. table.concat(changes, ", "))
+		record.changes[MAX_CHANGES + 1] = nil
+	end
 	if changed then
 		local list = {}
 		for name, rank in pairs(abilities) do
 			list[#list + 1] = name .. " " .. rank
 		end
 		table.sort(list)
-		ns.Debug("Demons:", family, "knows", table.concat(list, ", "))
+		ns.Debug("Demons:", family, "knows", table.concat(list, ", "), "(" .. (why or "?") .. ")")
 		self:Refresh()
+	end
+end
+
+-- Reads the demon now, and again a moment later in case the game was still
+-- filling its spellbook in. A newer event starts the wait over.
+function Demons:PetChanged(event)
+	self:ReadPet(event)
+	self.lookToken = (self.lookToken or 0) + 1
+	local token = self.lookToken
+	for _, delay in ipairs(LOOK_AGAIN) do
+		C_Timer.After(delay, function()
+			if self.lookToken == token then
+				ns.Guard("demon spellbook", self.ReadPet, self, event .. " +" .. delay .. "s")
+			end
+		end)
 	end
 end
 
@@ -160,16 +188,23 @@ function Demons:Grimoire(name)
 	if not (rank or name:find(L["Grimoire"], 1, true)) then
 		return nil
 	end
-	local best, demon
-	for ability, key in pairs(AbilityIndex()) do
-		if name:find(ability, 1, true) and (not best or #ability > #best) then
-			best, demon = ability, key
+	-- Longest names first, so "Fire Shield" is tried before a shorter name inside it.
+	local index, names = AbilityIndex(), {}
+	for ability in pairs(index) do
+		names[#names + 1] = ability
+	end
+	table.sort(names, function(a, b)
+		if #a ~= #b then
+			return #a > #b
+		end
+		return a < b
+	end)
+	for _, ability in ipairs(names) do
+		if name:find(ability, 1, true) then
+			return { ability = ability, rank = rank or 1, demon = index[ability] }
 		end
 	end
-	if not best then
-		return nil
-	end
-	return { ability = best, rank = rank or 1, demon = demon }
+	return nil
 end
 
 -- "known", "upgrade", "new" or "unseen", and the rank your demon has.
@@ -478,7 +513,7 @@ end
 function Demons:OnEnable()
 	self:CreatePanel()
 	local events = ns.CreateEventFrame(self)
-	for _, event in ipairs({ "PET_BAR_UPDATE", "SPELLS_CHANGED", "MERCHANT_SHOW", "MERCHANT_CLOSED", "PLAYER_ENTERING_WORLD" }) do
+	for _, event in ipairs({ "PET_BAR_UPDATE", "SPELLS_CHANGED", "LEARNED_SPELL_IN_SKILL_LINE", "MERCHANT_SHOW", "MERCHANT_CLOSED", "PLAYER_ENTERING_WORLD" }) do
 		events:RegisterEvent(event)
 	end
 	events:RegisterUnitEvent("UNIT_PET", "player")
@@ -510,19 +545,18 @@ function Demons:OnEnable()
 			ns.Print(L["No demons setting called '%s'. Type /lockeye demons settings."]:format(name))
 		end
 	end)
-	self:ReadPet()
+	self:PetChanged("login")
 end
 
-function Demons:UNIT_PET()
-	self:ReadPet()
+for _, event in ipairs({ "UNIT_PET", "PET_BAR_UPDATE", "SPELLS_CHANGED", "LEARNED_SPELL_IN_SKILL_LINE", "PLAYER_ENTERING_WORLD" }) do
+	Demons[event] = function(self)
+		self:PetChanged(event)
+	end
 end
-Demons.PET_BAR_UPDATE = Demons.UNIT_PET
-Demons.SPELLS_CHANGED = Demons.UNIT_PET
-Demons.PLAYER_ENTERING_WORLD = Demons.UNIT_PET
 
 function Demons:MERCHANT_SHOW()
 	self.vendorOpen, self.dismissed = true, false
-	self:ReadPet()
+	self:ReadPet("vendor")
 	self:UpdateMarks()
 	self:ShowAtVendor()
 end

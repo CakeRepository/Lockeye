@@ -83,6 +83,49 @@ test("a demon learning a new rank updates the marks", function()
 	H.Equal(Badge(W, 2), "Known", "after")
 end)
 
+test("a spellbook the game fills in late is read again a moment later", function()
+	local W = Setup()
+	W.SummonDemon("Voidwalker", VOIDWALKER)
+	W.OpenVendor({ { id = 16388, name = "Grimoire of Sacrifice (Rank 2)" } })
+	H.Equal(Badge(W, 1), "Upgrade", "it has Sacrifice 1")
+	-- The grimoire is used: the game says the spells changed while the
+	-- spellbook still shows Rank 1, and it catches up a moment later.
+	W.Fire("SPELLS_CHANGED")
+	W.units.pet.spells[2] = { "Sacrifice", "Rank 2" }
+	H.Equal(Badge(W, 1), "Upgrade", "the first look saw the old rank")
+	W.Advance(1.2)
+	H.Equal(Badge(W, 1), "Known", "looked again")
+	local voidwalker = W.env.LockeyeCharDB.demons.Voidwalker
+	H.Equal(voidwalker.abilities.Sacrifice, 2, "Sacrifice 2")
+	-- What changed is kept, newest first, to check a wrong rank later.
+	H.True(voidwalker.changes[1]:find("SPELLS_CHANGED +1s: Sacrifice 1>2", 1, true) ~= nil, voidwalker.changes[1])
+	H.True(voidwalker.changes[2]:find("UNIT_PET: Sacrifice ->1", 1, true) ~= nil, voidwalker.changes[2])
+end)
+
+test("a demon whose spells show up after it's summoned still gets noted", function()
+	local W = Setup()
+	W.SummonDemon("Imp", {}) -- the spellbook is still empty when the game says the demon is out
+	H.Equal(W.env.LockeyeCharDB.demons.Imp, nil, "nothing to note yet")
+	for i, spell in ipairs(IMP) do
+		W.units.pet.spells[i] = spell
+	end
+	W.Advance(3.2)
+	H.Equal(W.env.LockeyeCharDB.demons.Imp.abilities.Firebolt, 3, "noted")
+	-- A burst of events: one look each, and one more look after the last.
+	local reads = W.petSpellbookReads
+	for i = 1, 20 do
+		W.Fire("PET_BAR_UPDATE")
+	end
+	W.Advance(5)
+	H.Equal(W.petSpellbookReads - reads, 20 + 2, "spellbook reads")
+	H.Equal(#W.env.LockeyeCharDB.demons.Imp.changes, 1, "one change: the first look")
+	for i = 1, 12 do
+		W.units.pet.spells[1] = { "Firebolt", "Rank " .. (3 + i % 2) }
+		W.Fire("SPELLS_CHANGED")
+	end
+	H.Equal(#W.env.LockeyeCharDB.demons.Imp.changes, 10, "only the last ten changes are kept")
+end)
+
 test("the marks follow the vendor's pages and hide on the Buyback tab", function()
 	local W = Setup()
 	W.SummonDemon("Imp", IMP)
